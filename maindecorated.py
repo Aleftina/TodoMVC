@@ -1,7 +1,41 @@
 import collections
+import arrow
 
 tasks = collections.defaultdict(list)
 
+def validate_date(f):
+    def wrapper(date, *args):
+        try:
+            arrow.get(date,'DD.MM.YY')
+        except arrow.parser.ParserError:
+            raise ValueError["Incorrect date"]
+        return f(date,  *args)
+    return wrapper
+
+@validate_date
+def add_task(date, task):
+   # validate_date(date)
+    tasks[date].append[task]
+
+
+@validate_date
+def delete():
+    # validate_date(date)
+    date = input("Date?")
+    index = input("index in list?")
+    try:
+        tasks[date].pop(int(index) - 1)
+    except (KeyError, IndexError, ValueError):
+        raise ValueError("incorrect input")
+
+@validate_date
+def list_tasks(date):
+    # validate_date(date)
+    if date in tasks and tasks[date]:
+        try:
+            tasks[date].pop(int() - 1)
+        except (KeyError, IndexError, ValueError):
+            raise ValueError("incorrect input")
 
 #########  1
 def date_input():
@@ -16,7 +50,7 @@ def date_input():
 
 def validate_date_exist(tasks):
     date = input("Task exist on the date?")
-    if date in tasks:
+    if date in tasks and tasks[date]:
         for index, task in enumerate(tasks[date], 0):
             print(index, tasks)
         else:
@@ -51,15 +85,11 @@ def check_function(action):
     if action == 'q':
         exit()
     elif action == 'a':
-        date_input()
-    elif action == 'v':
-        validate_date_exist(tasks)
-
+        add()
+    elif action == 'l':
+        list()
     elif action == 'd':
-        date = input("Date")
-        index = input("Number&")
-        pop_date_record(date, index)
-
+        delete()
     else:
         print("Incorrect action")
 
