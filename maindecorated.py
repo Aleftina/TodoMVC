@@ -1,101 +1,80 @@
 import collections
-import arrow
+import functools
+
+import arrow.parser
 
 tasks = collections.defaultdict(list)
 
+
+
 def validate_date(f):
+    @functools.wraps(f)
     def wrapper(date, *args):
         try:
-            arrow.get(date,'DD.MM.YY')
+            arrow.get(date, 'DD.MM.YYYY')
         except arrow.parser.ParserError:
-            raise ValueError["Incorrect date"]
-        return f(date,  *args)
+            raise ValueError('Incorrect date')
+        return f(date, *args)
     return wrapper
 
+
 @validate_date
-def add_task(date, task):
-   # validate_date(date)
-    tasks[date].append[task]
+def add(date, task):
+    tasks[date].append(task)
 
 
 @validate_date
-def delete():
-    # validate_date(date)
-    date = input("Date?")
-    index = input("index in list?")
-    try:
-        tasks[date].pop(int(index) - 1)
-    except (KeyError, IndexError, ValueError):
-        raise ValueError("incorrect input")
-
-@validate_date
-def list_tasks(date):
-    # validate_date(date)
+def list(date):
     if date in tasks and tasks[date]:
-        try:
-            tasks[date].pop(int() - 1)
-        except (KeyError, IndexError, ValueError):
-            raise ValueError("incorrect input")
+        return [(index, task) for index, task in enumerate(tasks[date], 1)]
+    else:
+        raise ValueError("There are no tasks on this date")
 
-#########  1
-def date_input():
+
+@validate_date
+def delete(date, number):
+    try:
+        tasks[date].pop(int(number) - 1)
+    except (KeyError, IndexError, ValueError):
+        raise ValueError("Incorrect input")
+
+
+def add_task():
     date = input("Date?")
     task = input("Task?")
-    if date not in tasks:
-        tasks[date] = [task]
-    else:
-        tasks[date].append(task)
-
-######### 2
-
-def validate_date_exist(tasks):
-    date = input("Task exist on the date?")
-    if date in tasks and tasks[date]:
-        for index, task in enumerate(tasks[date], 0):
-            print(index, tasks)
-        else:
-            tasks[date].append(task)
-    print("No tasks on this date")
+    add(date, task)
 
 
-#############  3
+def list_tasks():
+    date = input("Date?")
+    for index, task in list(date):
+        print("{}. {}".format(index, task))
 
-def pop_date_record(date, index):
-    try:
-        tasks[date].pop(index)
-    except (KeyError, IndexError):
-        print("incorrect input")
 
-        ###########  4
-def show_actions():
-    return input("""input: 
-                        a - add atask
-                        v- validate date exist
-                        l -List of tasks
-                        d - delete task
-                        q - quit
-                        """).lower()
+def delete_task():
+    date = input("Date?")
+    number = input("Number?")
+    delete(date, number)
 
-###############
-#
-# def composition(f, g):
-#     return lambda x: f(g(x))
 
-def check_function(action):
-    if action == 'q':
-        exit()
-    elif action == 'a':
-        add()
-    elif action == 'l':
-        list()
-    elif action == 'd':
-        delete()
-    else:
-        print("Incorrect action")
+def default():
+    print("Incorrect action")
 
-####################  main
+
+actions = {
+    'a': add_task,
+    'l': list_tasks,
+    'd': delete_task,
+    'q': exit,
+}
 
 while True:
-    action = show_actions()
-    check_function(action)
-print(tasks)
+    action = input("""a - add task
+l - list tasks
+d - delete task
+q - quit
+?""").lower()
+    try:
+        actions.get(action, default)()
+    except ValueError as e:
+        print(e)
